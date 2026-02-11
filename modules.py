@@ -11,14 +11,14 @@ from scipy.ndimage import gaussian_filter1d
 # VISUALIZATION
 # =======================================================================================
 
-def plot_eigs(ev, ev2=None, xlim=None):
+def plot_eigs(ev, ev_label = 'Eigenvalues 1', ev2=None, ev2_label = 'Eigenvalues 2', xlim=None):
     
     plt.figure(figsize=(4, 3))#, facecolor='lightskyblue')
     
-    plt.plot(ev.real, ev.imag, '*', label='Eigenvalues 1')
+    plt.plot(ev.real, ev.imag, '*', label=ev_label)
     
     if ev2 is not None:
-        plt.plot(ev2.real, ev2.imag, 'o', markerfacecolor='none', label='Eigenvalues 2')
+        plt.plot(ev2.real, ev2.imag, 'o', markerfacecolor='none', label=ev2_label)
         plt.legend() # Only show legend if we have two sets
     
     plt.axvline(x=0, color='red', linestyle='--')
