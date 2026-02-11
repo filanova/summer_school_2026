@@ -130,7 +130,7 @@ def plot_svd(r, S,E, maxr = 200):
     ax[0].grid(color='lightgrey')
     ax[0].set_title('normalized singular values')
     ax[0].set_ylim([1e-16,5])
-    ax[0].axvline(x=r)
+    ax[0].axvline(x=r,color="r", linestyle="--")
     print(f'Cum. energy E(r) = {E[r]*100} %')
 
     # plot the cumulative energy
@@ -138,7 +138,7 @@ def plot_svd(r, S,E, maxr = 200):
     ax[1].plot(E[:maxr],'o')
     ax[1].grid() 
     ax[1].set_title('Cumulative energy')
-    ax[1].axvline(x=r)
+    ax[1].axvline(x=r,color="r", linestyle="--")
 
     plt.show()
 
