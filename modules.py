@@ -13,7 +13,7 @@ from scipy.ndimage import gaussian_filter1d
 
 def plot_eigs(ev, ev2=None, xlim=None):
     
-    plt.figure(figsize=(4, 3), facecolor='lightskyblue')
+    plt.figure(figsize=(4, 3))#, facecolor='lightskyblue')
     
     plt.plot(ev.real, ev.imag, '*', label='Eigenvalues 1')
     
@@ -39,7 +39,7 @@ def visualize1d( t, dt, snapshots, title=None, red_snapshots = None):
     nsn = len(t)
     snap = [int(x/dt+1) for x in t]
     leg = []
-    plt.figure(figsize=(10.2, 3), facecolor='lightskyblue')
+    plt.figure(figsize=(10.2, 3))#, facecolor='lightskyblue')
     for i in range(nsn):
         plt.plot(space_grid, snapshots[:,snap[i]])
         leg.append(f"t = {t[i]}")
@@ -68,7 +68,7 @@ def visualize2d(time_grid, snapshots, title=None, contour=True,
 
     # contour plot
     if contour:
-        fig = plt.figure(figsize=(4, 3),facecolor='white')
+        fig = plt.figure(figsize=(4, 3))#,facecolor='white')
         ax = fig.gca()
         if logscale:
             plt.contourf(X, T, snapshots.T, 50,
@@ -120,7 +120,7 @@ def visualize3d(time_grid, snapshots, title=None):
 
 def plot_svd(r, S,E, maxr = 200):
     # also remove it to functions!
-    fig, ax = plt.subplots(1, 2, figsize=(10, 3),facecolor='lightskyblue')
+    fig, ax = plt.subplots(1, 2, figsize=(10, 3))#,facecolor='lightskyblue')
 
     # plot the normalized singular values
     if maxr > S.shape[0]:
