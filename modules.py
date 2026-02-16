@@ -4,8 +4,117 @@ from matplotlib import ticker
 import torch
 import torch.nn as nn
 import sys
-from scipy.ndimage import gaussian_filter1d
+from scipy.integrate import solve_ivp
+# from scipy.ndimage import gaussian_filter1d
+import scipy.sparse as sps
 
+
+# =======================================================================================
+# DATA GENERATION
+# =======================================================================================
+def burgers_discretization(n, mu):
+    """
+    Discretized Burgers model according to
+
+    d              d2           d
+    -- v(y,t) - mu --- v(y,t) + -- (u^2(y,t))  = f(y,t)
+    dt             dy2          dy
+
+    Initial conditions:  u(x,0) = 0
+    Noundary conditions: u(0,t)    = 0
+                         d(u(1,t))
+                         --        = 0
+                         dx
+
+    The corresponding discretized model is
+
+    .
+    x (t) = A x (t) + H x^2 (t) + B u(t)
+
+
+
+    Parameters
+    n (int): mesh size.
+    mu (float): diffusion coefficient.
+
+    Returns
+    model: system matrices.
+    """
+    dx = 1 / (n + 1)
+    
+    # 1. Construct Linear Matrix A (Diffusion)
+    # A = nu * second_derivative_matrix
+    main_diag = -2 * np.ones(n)
+    off_diag = np.ones(n - 1)
+    A = (mu / dx**2) * (np.diag(main_diag) + np.diag(off_diag, 1) + np.diag(off_diag, -1))
+    
+    # 2. Construct Quadratic Matrix H (Advection)
+    # We want dot(x)_i = ... - x_i * (x_{i+1} - x_{i-1}) / (2*dx)
+    # The Kronecker product x \otimes x results in a vector of size n^2
+    # mapping index (i, j) to i*n + j
+    
+    H = np.zeros((n, n**2))
+    
+    for i in range(n):
+        # Indexing for internal nodes (0 to n-1)
+        # Term: -(1/2dx) * (x_i * x_{i+1} - x_i * x_{i-1})
+        
+        if i < n - 1: # interaction with right neighbor
+            # index of x_i * x_{i+1} in the Kronecker vector is i*n + (i+1)
+            H[i, i*n + (i+1)] = -1 / (2 * dx)
+            
+        if i > 0: # interaction with left neighbor
+            # index of x_i * x_{i-1} in the Kronecker vector is i*n + (i-1)
+            H[i, i*n + (i-1)] = 1 / (2 * dx)
+    
+    return A,H
+
+def burgers(A, H, fnnl, inifunc):
+    """
+    Provide a model in the following form
+
+    .
+    x (t) = A x (t) + H x^2 (t) + B u(t)
+    """
+    def burg_model(t,x):
+
+        return A@x + H@ fnnl(x)
+        
+    
+    n = A.shape[0]
+    if callable(inifunc):
+        space_grid = np.array([i*1/(n+1) for i in range(1, n+1)])
+        inival = inifunc(space_grid)
+    else:
+        inival = inifunc
+    
+    return burg_model, inival
+
+def solve_burgers(n, tspan, inifunc, mu, Ar = None, Hr = None):
+
+    # 
+    # MODEL
+    # 
+    fnnl    = lambda x : np.kron(x,x)
+    if Ar is None:
+        # fnnl    = lambda x : x*x
+        
+        A, H = burgers_discretization(n, mu)
+    else:
+        A = Ar
+        H = Hr
+    burg_model, inival  = burgers(A, H,fnnl, inifunc)
+
+    T = tspan[-1]
+    solution  = solve_ivp(burg_model, (0, T), inival, method='BDF', t_eval = tspan)
+    return solution.y
+
+def colwise_kron(X, Y):
+    # X shape: (n, nt)
+    # Result shape: (n*n, nt)
+    # Use einsum to multiply X_ik * X_jk for each column k
+    res = np.einsum('ik,jk->ijk', X, Y)
+    return res.reshape(-1, X.shape[1])
 
 # =======================================================================================
 # VISUALIZATION
