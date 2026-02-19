@@ -109,6 +109,16 @@ def solve_burgers(n, tspan, inifunc, mu, Ar = None, Hr = None):
     solution  = solve_ivp(burg_model, (0, T), inival, method='BDF', t_eval = tspan)
     return solution.y
 
+def solve_burgers_linear(n, tspan, inival, Ar = None):
+
+    if Ar is None:
+        raise ValueError
+    
+    def burg_model_lin(t,x): return Ar@x
+    T = tspan[-1]
+    solution  = solve_ivp(burg_model_lin, (0, T), inival, method='BDF', t_eval = tspan)
+    return solution.y
+
 def colwise_kron(X, Y):
     # X shape: (n, nt)
     # Result shape: (n*n, nt)
